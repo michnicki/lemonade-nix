@@ -11,13 +11,13 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
 
-        version = "9.4.0";
+        version = "10.0.0";
 
         lemonade-src = pkgs.fetchFromGitHub {
-          owner = "lemonade-hq";
+          owner = "lemonade-sdk";
           repo = "lemonade";
           rev = "v${version}";
-          hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+          hash = "sha256-PT3HzdQy+Zc2Y7uutgU62uvhA1w6V37UyrcFqCezM80=";
         };
 
         # cpp-httplib is not packaged in nixpkgs; pre-fetch for FetchContent.
@@ -58,6 +58,7 @@
           ] ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
             systemd
             libcap
+            libdrm
           ];
 
           postPatch = ''
@@ -78,7 +79,6 @@
             runHook preInstall
             install -Dm755 lemonade-router $out/bin/lemonade-router
             install -Dm755 lemonade-server $out/bin/lemonade-server
-            install -Dm755 lemonade $out/bin/lemonade
             # Resources are looked up relative to the binary's parent directory
             mkdir -p $out/share/lemonade-server
             cp -r resources $out/share/lemonade-server/
@@ -87,9 +87,9 @@
 
           meta = with pkgs.lib; {
             description = "Local LLM server with GPU/NPU acceleration (OpenAI-compatible API)";
-            homepage = "https://github.com/lemonade-hq/lemonade";
+            homepage = "https://github.com/lemonade-sdk/lemonade";
             license = licenses.asl20;
-            mainProgram = "lemonade";
+            mainProgram = "lemonade-router";
             platforms = platforms.linux ++ platforms.darwin;
           };
         };
