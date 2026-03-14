@@ -45,6 +45,10 @@ Includes Python 3 with `black`, `pylint`, and `requests`.
 | `lemonade-router` | Main router / OpenAI-compatible API server |
 | `lemonade-server` | Backend inference server |
 
+## Dependencies
+
+For FLM-based models, [fastflowlm-nix](https://codeberg.org/tmichnicki/fastflowlm-nix) must also be installed and available on `PATH`.
+
 ## Web UI
 
 The package includes the Lemonade web app. Once `lemonade-router` is running, open [http://localhost:8000](http://localhost:8000) in your browser to access the chat interface.
