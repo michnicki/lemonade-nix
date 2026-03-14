@@ -36,6 +36,46 @@
           hash = "sha256-BLvZBZA9wTvzDuUFXT0YQAEuQxeGyRPxCLuFS4xrknI=";
         };
 
+        # Build the web app separately as a fixed-output derivation so npm can
+        # access the network. The main cmake build keeps BUILD_WEB_APP=OFF to
+        # avoid running npm in the sandbox; we inject the pre-built assets in
+        # postInstall instead.
+        lemonade-webapp = pkgs.stdenv.mkDerivation {
+          name = "lemonade-webapp";
+          src = lemonade-src;
+
+          nativeBuildInputs = [ pkgs.nodejs pkgs.cacert ];
+
+          # src/web-app/{src,assets,styles.css} are symlinks into src/app/;
+          # cp -rL dereferences them so npm/webpack can find the files.
+          unpackPhase = ''
+            cp -rL $src/src/web-app webapp
+            chmod -R u+w webapp
+          '';
+
+          buildPhase = ''
+            cd webapp
+            export HOME=$(mktemp -d)
+            export npm_config_cache=$(mktemp -d)
+            export NODE_EXTRA_CA_CERTS="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
+            npm install
+            mkdir -p $out
+            WEBPACK_OUTPUT_PATH=$out node ./node_modules/.bin/webpack --mode production
+          '';
+
+          installPhase = ":";
+
+          # Fixed-output derivation: allows network access; hash ensures
+          # reproducibility. Run `nix build` with this fake hash to get the
+          # real one from the error output, then replace it below.
+          outputHashAlgo = "sha256";
+          outputHashMode = "recursive";
+          outputHash = "sha256-UQ9PuIOqliap+qdO8Y2anoQoL3SGQB6nn5g79h8WT+4=";
+
+          dontStrip = true;
+          dontFixup = true;
+        };
+
       in {
         packages.default = pkgs.stdenv.mkDerivation {
           pname = "lemonade";
@@ -82,6 +122,9 @@
             # Resources are looked up relative to the binary's parent directory
             mkdir -p $out/share/lemonade-server
             cp -r resources $out/share/lemonade-server/
+            # Inject the pre-built web app (built outside the sandbox)
+            mkdir -p $out/share/lemonade-server/resources/web-app
+            cp -r ${lemonade-webapp}/. $out/share/lemonade-server/resources/web-app/
             runHook postInstall
           '';
 
