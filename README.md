@@ -1,6 +1,6 @@
 # lemonade-nix
 
-Nix flake for [Lemonade](https://github.com/lemonade-sdk/lemonade) — a local LLM server with GPU/NPU acceleration and an OpenAI-compatible API.
+Nix flake for [Lemonade](https://github.com/lemonade-sdk/lemonade) — a local LLM server with GPU/NPU acceleration, an OpenAI-compatible API, and a built-in React web UI.
 
 ## Usage
 
@@ -44,6 +44,10 @@ Includes Python 3 with `black`, `pylint`, and `requests`.
 |---|---|
 | `lemonade-router` | Main router / OpenAI-compatible API server |
 | `lemonade-server` | Backend inference server |
+
+## Web UI
+
+The package includes the Lemonade web app. Once `lemonade-router` is running, open [http://localhost:8000](http://localhost:8000) in your browser to access the chat interface.
 
 ## Version
 
