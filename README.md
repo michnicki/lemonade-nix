@@ -55,7 +55,7 @@ The package includes the Lemonade web app. Once `lemonade-router` is running, op
 
 ## Version
 
-Currently packages Lemonade **v10.0.0**.
+Currently packages Lemonade **v10.0.1**.
 
 ## License
 

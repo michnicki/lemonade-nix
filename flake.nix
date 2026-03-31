@@ -11,13 +11,13 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
 
-        version = "10.0.0";
+        version = "10.0.1";
 
         lemonade-src = pkgs.fetchFromGitHub {
           owner = "lemonade-sdk";
           repo = "lemonade";
           rev = "v${version}";
-          hash = "sha256-PT3HzdQy+Zc2Y7uutgU62uvhA1w6V37UyrcFqCezM80=";
+          hash = "sha256-aswK7OXMWTFUNHrrktf1Vx3nvTkLWMEhAgWlil1Zu2c=";
         };
 
         # cpp-httplib is not packaged in nixpkgs; pre-fetch for FetchContent.
@@ -28,12 +28,12 @@
           hash = "sha256-+VPebnFMGNyChM20q4Z+kVOyI/qDLQjRsaGS0vo8kDM=";
         };
 
-        # IXWebSocket is always fetched via FetchContent on Linux (no find_package fallback).
-        ixwebsocket-src = pkgs.fetchFromGitHub {
-          owner = "machinezone";
-          repo = "IXWebSocket";
-          rev = "v11.4.4";
-          hash = "sha256-BLvZBZA9wTvzDuUFXT0YQAEuQxeGyRPxCLuFS4xrknI=";
+        # IXWebSocket was replaced by libwebsockets in v10.0.1.
+        libwebsockets-src = pkgs.fetchFromGitHub {
+          owner = "warmcat";
+          repo = "libwebsockets";
+          rev = "v4.3.3";
+          hash = "sha256-IXA9NUh55GtZmn4BhCXntVdHcKZ34iZIJ/0wlySj0/M=";
         };
 
         # Build the web app separately as a fixed-output derivation so npm can
@@ -70,7 +70,7 @@
           # real one from the error output, then replace it below.
           outputHashAlgo = "sha256";
           outputHashMode = "recursive";
-          outputHash = "sha256-UQ9PuIOqliap+qdO8Y2anoQoL3SGQB6nn5g79h8WT+4=";
+          outputHash = "sha256-XERQpiRlq72FLqBAk7Y3rZJL0nI+SyR0QDvzEBtgjb0=";
 
           dontStrip = true;
           dontFixup = true;
@@ -106,13 +106,19 @@
             # binary at $prefix/bin/, resources at $prefix/share/lemonade-server/
             sed -i 's|std::vector<std::string> install_prefixes = {|std::vector<std::string> install_prefixes = {\n        (exe_dir.parent_path() / "share" / "lemonade-server").string(),|' \
               src/cpp/server/utils/path_utils.cpp
+
+            # Pre-fetched libwebsockets source is read-only in the Nix store;
+            # replace the runtime -Werror patching (file READ/WRITE) with a
+            # compiler flag that achieves the same result.
+            sed -i '/file(READ.*libwebsockets_SOURCE_DIR.*CMakeLists.txt/,/file(WRITE.*libwebsockets_SOURCE_DIR.*CMakeLists.txt.*)/c\
+            add_compile_options(-Wno-error)' CMakeLists.txt
           '';
 
           cmakeFlags = [
             "-DBUILD_WEB_APP=OFF"
             # Pre-fetched sources for dependencies not available via pkg-config/find_package
             "-DFETCHCONTENT_SOURCE_DIR_HTTPLIB=${cpp-httplib-src}"
-            "-DFETCHCONTENT_SOURCE_DIR_IXWEBSOCKET=${ixwebsocket-src}"
+            "-DFETCHCONTENT_SOURCE_DIR_LIBWEBSOCKETS=${libwebsockets-src}"
           ];
 
           installPhase = ''
