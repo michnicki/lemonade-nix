@@ -11,13 +11,13 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
 
-        version = "10.0.1";
+        version = "10.1.0";
 
         lemonade-src = pkgs.fetchFromGitHub {
           owner = "lemonade-sdk";
           repo = "lemonade";
           rev = "v${version}";
-          hash = "sha256-aswK7OXMWTFUNHrrktf1Vx3nvTkLWMEhAgWlil1Zu2c=";
+          hash = "sha256-No3wTtXIq1cT946U7amlIpX2Edw3qmATT2aBwYtAlLQ=";
         };
 
         # cpp-httplib is not packaged in nixpkgs; pre-fetch for FetchContent.
@@ -70,7 +70,7 @@
           # real one from the error output, then replace it below.
           outputHashAlgo = "sha256";
           outputHashMode = "recursive";
-          outputHash = "sha256-XERQpiRlq72FLqBAk7Y3rZJL0nI+SyR0QDvzEBtgjb0=";
+          outputHash = "sha256-QJfmJo3PUTlxBaL0SwJHoJvaPu61CKJ6k8c8MtPIJOk=";
 
           dontStrip = true;
           dontFixup = true;
@@ -123,7 +123,8 @@
 
           installPhase = ''
             runHook preInstall
-            install -Dm755 lemonade-router $out/bin/lemonade-router
+            install -Dm755 lemond $out/bin/lemond
+            install -Dm755 lemonade $out/bin/lemonade
             install -Dm755 lemonade-server $out/bin/lemonade-server
             # Resources are looked up relative to the binary's parent directory
             mkdir -p $out/share/lemonade-server
@@ -138,7 +139,7 @@
             description = "Local LLM server with GPU/NPU acceleration (OpenAI-compatible API)";
             homepage = "https://github.com/lemonade-sdk/lemonade";
             license = licenses.asl20;
-            mainProgram = "lemonade-router";
+            mainProgram = "lemonade";
             platforms = platforms.linux ++ platforms.darwin;
           };
         };
