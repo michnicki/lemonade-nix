@@ -42,8 +42,9 @@ Includes Python 3 with `black`, `pylint`, and `requests`.
 
 | Binary | Description |
 |---|---|
-| `lemonade-router` | Main router / OpenAI-compatible API server |
-| `lemonade-server` | Backend inference server |
+| `lemonade` | CLI for managing and interacting with the server |
+| `lemond` | Main server daemon (OpenAI-compatible API) |
+| `lemonade-server` | Legacy compatibility shim |
 
 ## Dependencies
 
@@ -51,11 +52,11 @@ For FLM-based models, [fastflowlm-nix](https://codeberg.org/tmichnicki/fastflowl
 
 ## Web UI
 
-The package includes the Lemonade web app. Once `lemonade-router` is running, open [http://localhost:8000](http://localhost:8000) in your browser to access the chat interface.
+The package includes the Lemonade web app. Once `lemond` is running, open [http://localhost:13305](http://localhost:13305) in your browser to access the chat interface.
 
 ## Version
 
-Currently packages Lemonade **v10.0.1**.
+Currently packages Lemonade **v10.1.0**.
 
 ## License
 
