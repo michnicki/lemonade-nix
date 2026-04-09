@@ -54,9 +54,17 @@ For FLM-based models, [fastflowlm-nix](https://codeberg.org/tmichnicki/fastflowl
 
 The package includes the Lemonade web app. Once `lemond` is running, open [http://localhost:13305](http://localhost:13305) in your browser to access the chat interface.
 
+## What's New in v10.2.0
+
+*   **Embeddable Lemonade**: Portable binaries designed for bundling into other applications.
+*   **Expanded Model Support**: Support for **Qwen Image** models and improved integration for GGUF and RAI models.
+*   **`lemonade pull` Enhancements**: Smarter automatic detection of checkpoints, recipes, and labels.
+*   **OpenCode Integration**: New integration accessible via `lemonade launch opencode`.
+*   **Hardware Reporting**: Improved device type detection for `llamacpp` and `whispercpp` backends.
+
 ## Version
 
-Currently packages Lemonade **v10.1.0**.
+Currently packages Lemonade **v10.2.0**.
 
 ## License
 
