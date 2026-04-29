@@ -2,9 +2,7 @@
 # Automatically bumps lemonade-nix to the latest upstream release.
 # Usage: ./scripts/update-lemonade.sh [--dry-run]
 #
-# Requires on PATH: git, curl, jq, nix, nix-prefetch-github, sed, grep
-# To bring in nix-prefetch-github:
-#   nix shell nixpkgs#nix-prefetch-github nixpkgs#jq --command ./scripts/update-lemonade.sh
+# Requires on PATH: git, curl, jq, nix, sed, grep  (all standard; no extra tools needed)
 set -euo pipefail
 
 DRY_RUN=false
@@ -21,12 +19,16 @@ die() {
     exit 1
 }
 
+FAKE_HASH="sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+
+extract_got_hash() {
+    grep -oP 'got:\s+\Ksha256-[A-Za-z0-9+/=]+' "$1" | tail -1
+}
+
 # ── Pre-flight ────────────────────────────────────────────────────────────────
 
-for tool in git curl jq nix nix-prefetch-github sed grep; do
-    command -v "$tool" > /dev/null 2>&1 \
-        || die "Required tool not found: $tool
-  To install nix-prefetch-github: nix shell nixpkgs#nix-prefetch-github"
+for tool in git curl jq nix sed grep; do
+    command -v "$tool" > /dev/null 2>&1 || die "Required tool not found: $tool"
 done
 
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
@@ -55,67 +57,61 @@ if [[ "$CURRENT_VERSION" == "$NEW_VERSION" ]]; then
     exit 0
 fi
 
-# ── Compute lemonade-src hash ─────────────────────────────────────────────────
+LOG=$(mktemp /tmp/lemonade-update.XXXXXX.log)
 
-echo "Computing lemonade-src hash for v$NEW_VERSION..."
-PREFETCH=$(nix-prefetch-github --json lemonade-sdk lemonade --rev "v$NEW_VERSION")
-NEW_SRC_HASH=$(echo "$PREFETCH" | jq -r '.hash // .sha256')
-# Older nix-prefetch-github outputs Nix base32 in .sha256; convert to SRI.
-if [[ "$NEW_SRC_HASH" != sha256-* ]]; then
-    NEW_SRC_HASH=$(nix hash to-sri --type sha256 "$NEW_SRC_HASH")
-fi
-echo "  lemonade-src hash: $NEW_SRC_HASH"
+# ── Build 1: get lemonade-src hash ───────────────────────────────────────────
+# Bump version and set a fake lemonade-src hash; nix fails fast at the network
+# fetch and reports the real hash in the error output.
 
-# ── Patch flake.nix: version + lemonade-src hash ──────────────────────────────
-
-echo "Patching flake.nix..."
-
+echo "Patching version..."
 sed -i "s|version = \"$CURRENT_VERSION\";|version = \"$NEW_VERSION\";|" flake.nix
 
-# Replace hash only inside the lemonade-src block (stops at first }; after the block opens).
+echo "Build 1/3: computing lemonade-src hash..."
 sed -i "/lemonade-src = pkgs.fetchFromGitHub/,/^[[:space:]]*};$/{
-    s|hash = \"sha256-[A-Za-z0-9+/=]*\";|hash = \"$NEW_SRC_HASH\";|
+    s|hash = \"sha256-[A-Za-z0-9+/=]*\";|hash = \"$FAKE_HASH\";|
 }" flake.nix
 
-# Sanity-check: the new hash must appear exactly once.
-HASH_MATCHES=$(grep -c "hash = \"$NEW_SRC_HASH\"" flake.nix || true)
-[[ "$HASH_MATCHES" -eq 1 ]] \
-    || die "lemonade-src hash patch failed or matched $HASH_MATCHES times. Restore flake.nix with: git checkout flake.nix"
-
-# ── Compute lemonade-webapp outputHash via fake-hash trick ────────────────────
-
-echo "Computing lemonade-webapp outputHash..."
-echo "  (Running nix build with a fake hash to get the real one — may take several minutes.)"
-
-ORIG_OUTPUT_HASH=$(grep -oP 'outputHash = "\K[^"]+' flake.nix | head -1)
-FAKE_HASH="sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
-sed -i "s|outputHash = \"$ORIG_OUTPUT_HASH\";|outputHash = \"$FAKE_HASH\";|" flake.nix
-
-LOG=$(mktemp /tmp/lemonade-update.XXXXXX.log)
-echo "  Build log: $LOG"
 nix build .#default --no-link 2>&1 | tee "$LOG" || true
 
-NEW_OUTPUT_HASH=$(grep -oP 'got:\s+\Ksha256-[A-Za-z0-9+/=]+' "$LOG" | tail -1)
+NEW_SRC_HASH=$(extract_got_hash "$LOG")
+[[ -n "$NEW_SRC_HASH" ]] \
+    || die "Could not extract lemonade-src hash from build output. Log: $LOG"
+echo "  lemonade-src hash: $NEW_SRC_HASH"
+
+sed -i "/lemonade-src = pkgs.fetchFromGitHub/,/^[[:space:]]*};$/{
+    s|hash = \"$FAKE_HASH\";|hash = \"$NEW_SRC_HASH\";|
+}" flake.nix
+
+# ── Build 2: get lemonade-webapp outputHash ───────────────────────────────────
+# Source hash is now correct; fake the webapp FOD hash so nix builds the web
+# app and reports the real hash at the end.
+
+ORIG_OUTPUT_HASH=$(grep -oP 'outputHash = "\K[^"]+' flake.nix | head -1)
+sed -i "s|outputHash = \"$ORIG_OUTPUT_HASH\";|outputHash = \"$FAKE_HASH\";|" flake.nix
+
+echo "Build 2/3: computing lemonade-webapp outputHash (runs npm install + webpack, may take minutes)..."
+echo "  Log: $LOG"
+nix build .#default --no-link 2>&1 | tee "$LOG" || true
+
+NEW_OUTPUT_HASH=$(extract_got_hash "$LOG")
 if [[ -z "$NEW_OUTPUT_HASH" ]]; then
     echo "" >&2
     echo "ERROR: Could not extract outputHash from build output." >&2
-    echo "       lemonade-src hash may also be wrong — check the build log." >&2
-    echo "       Build log: $LOG" >&2
-    echo "       Working tree is dirty; inspect and finish manually." >&2
+    echo "       Log: $LOG" >&2
+    echo "       Working tree is intentionally left dirty." >&2
     exit 1
 fi
 echo "  outputHash: $NEW_OUTPUT_HASH"
 
 sed -i "s|outputHash = \"$FAKE_HASH\";|outputHash = \"$NEW_OUTPUT_HASH\";|" flake.nix
 
-# ── Final verification build ──────────────────────────────────────────────────
+# ── Build 3: final verification ───────────────────────────────────────────────
 
-echo "Running final verification build..."
+echo "Build 3/3: final verification..."
 if ! nix build .#default; then
-    echo "" >&2
     cat >&2 <<EOF
-ERROR: Final build failed — this looks like a non-routine bump.
-       Possible causes: renamed binary, swapped dependency, broken postPatch.
+
+ERROR: Final build failed — likely a non-routine bump (renamed binary, swapped dep, broken postPatch).
        Compare upstream changes:
          https://github.com/lemonade-sdk/lemonade/compare/v$CURRENT_VERSION...v$NEW_VERSION
        Working tree is intentionally left dirty. Finish the bump manually.
@@ -123,11 +119,9 @@ EOF
     exit 1
 fi
 
-# ── Update README ─────────────────────────────────────────────────────────────
+# ── Update README + commit ────────────────────────────────────────────────────
 
 sed -i "s/Lemonade \*\*v[0-9.]\+\*\*/Lemonade **v$NEW_VERSION**/" README.md
-
-# ── Commit and push ───────────────────────────────────────────────────────────
 
 echo "Committing..."
 git add flake.nix README.md
@@ -141,7 +135,6 @@ else
 fi
 
 RESULT_PATH=$(readlink -f result 2>/dev/null || echo "(no result symlink)")
-
 echo ""
 echo "✓ Lemonade v$NEW_VERSION"
 echo "  lemonade-src hash:  $NEW_SRC_HASH"

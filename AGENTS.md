@@ -33,11 +33,7 @@ Run the update script — it detects a new release, computes hashes, builds, and
 ./scripts/update-lemonade.sh --dry-run  # same but skips git push (for testing)
 ```
 
-Requires `nix-prefetch-github` on PATH. If it isn't installed:
-
-```bash
-nix shell nixpkgs#nix-prefetch-github --command ./scripts/update-lemonade.sh
-```
+No extra tools needed beyond `nix`, `git`, `curl`, and `jq`.
 
 If the script fails at the final build step (non-routine break: renamed binary, swapped transitive dep, broken `postPatch`), it leaves the tree dirty so you can finish by hand. See the manual procedure below.
 
