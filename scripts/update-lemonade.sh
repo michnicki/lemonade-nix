@@ -34,8 +34,8 @@ done
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 [[ "$BRANCH" == "main" ]] \
     || die "Not on main branch (currently on '$BRANCH'). Switch to main first."
-[[ -z "$(git status --porcelain)" ]] \
-    || die "Working tree is dirty. Commit or stash changes first."
+git diff --quiet && git diff --cached --quiet \
+    || die "Working tree has uncommitted changes. Commit or stash first."
 git remote get-url origin > /dev/null 2>&1 \
     || die "No 'origin' remote configured."
 
