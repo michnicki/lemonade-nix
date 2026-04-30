@@ -46,11 +46,11 @@
 
           nativeBuildInputs = [ pkgs.nodejs pkgs.cacert ];
 
-          # src/web-app/{src,assets,styles.css} are symlinks into src/app/;
-          # cp -rL dereferences them so npm/webpack can find the files.
+          # The web-app build expects src/app and src/web-app to be siblings.
           unpackPhase = ''
+            cp -rL $src/src/app app
             cp -rL $src/src/web-app webapp
-            chmod -R u+w webapp
+            chmod -R u+w app webapp
           '';
 
           buildPhase = ''
