@@ -64,7 +64,7 @@ The package includes the Lemonade web app. Once `lemond` is running, open [http:
 
 ## Version
 
-Currently packages Lemonade **v10.5.0**.
+Currently packages Lemonade **v10.5.1**.
 
 ## License
 

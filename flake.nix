@@ -11,13 +11,13 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
 
-        version = "10.5.0";
+        version = "10.5.1";
 
         lemonade-src = pkgs.fetchFromGitHub {
           owner = "lemonade-sdk";
           repo = "lemonade";
           rev = "v${version}";
-          hash = "sha256-HMUDkO3Lg2GUqJqvrCXmDm4Q0OYqn1+DCQWC5yuy4/U=";
+          hash = "sha256-jPc/KeuDUrkGSfvDx4rWB9tL6+f6w2Le6zMNvbj4y7Q=";
         };
 
         # cpp-httplib is not packaged in nixpkgs; pre-fetch for FetchContent.
@@ -70,7 +70,7 @@
           # real one from the error output, then replace it below.
           outputHashAlgo = "sha256";
           outputHashMode = "recursive";
-          outputHash = "sha256-fNFWm7yt+WeQjwCJhHCs58fTm9QykzyL/k12MwmyF7c=";
+          outputHash = "sha256-dwg0KAZX6I9gFIt7iAK2UzT7ALfUHtKtZzU3ezUlGqc=";
 
           dontStrip = true;
           dontFixup = true;
@@ -125,7 +125,6 @@
             runHook preInstall
             install -Dm755 lemond $out/bin/lemond
             install -Dm755 lemonade $out/bin/lemonade
-            install -Dm755 lemonade-server $out/bin/lemonade-server
             # Resources are looked up relative to the binary's parent directory
             mkdir -p $out/share/lemonade-server
             cp -r resources $out/share/lemonade-server/
