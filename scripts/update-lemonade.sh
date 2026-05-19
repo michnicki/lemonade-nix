@@ -108,14 +108,32 @@ sed -i "s|outputHash = \"$FAKE_HASH\";|outputHash = \"$NEW_OUTPUT_HASH\";|" flak
 # ── Build 3: final verification ───────────────────────────────────────────────
 
 echo "Build 3/3: final verification..."
-if ! nix build .#default; then
-    cat >&2 <<EOF
+if ! nix build .#default 2>&1 | tee "$LOG"; then
+    # Surface common failure signatures so non-routine bumps don't require a
+    # full log scan. Patterns are best-effort hints, not exhaustive.
+    MISSING_INSTALLS=$(grep -oP "install: cannot stat '\K[^']+" "$LOG" | sort -u || true)
+    BUILT_BINARIES=$(grep -oP 'Linking (?:CXX|C) executable \K\S+' "$LOG" | sort -u || true)
 
-ERROR: Final build failed — likely a non-routine bump (renamed binary, swapped dep, broken postPatch).
-       Compare upstream changes:
-         https://github.com/lemonade-sdk/lemonade/compare/v$CURRENT_VERSION...v$NEW_VERSION
-       Working tree is intentionally left dirty. Finish the bump manually.
-EOF
+    {
+        echo ""
+        echo "ERROR: Final build failed — likely a non-routine bump (renamed binary, swapped dep, broken postPatch)."
+        if [[ -n "$MISSING_INSTALLS" ]]; then
+            echo ""
+            echo "  installPhase tried to copy these files but they don't exist:"
+            echo "$MISSING_INSTALLS" | sed 's/^/    - /'
+        fi
+        if [[ -n "$BUILT_BINARIES" ]]; then
+            echo ""
+            echo "  Binaries the upstream build actually produced:"
+            echo "$BUILT_BINARIES" | sed 's/^/    - /'
+            echo "  Reconcile flake.nix installPhase against this list."
+        fi
+        echo ""
+        echo "  Compare upstream changes:"
+        echo "    https://github.com/lemonade-sdk/lemonade/compare/v$CURRENT_VERSION...v$NEW_VERSION"
+        echo "  Full log: $LOG"
+        echo "  Working tree is intentionally left dirty. Finish the bump manually."
+    } >&2
     exit 1
 fi
 
