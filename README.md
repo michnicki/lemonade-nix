@@ -7,13 +7,13 @@ Nix flake for [Lemonade](https://github.com/lemonade-sdk/lemonade) — a local L
 ### Run without installing
 
 ```bash
-nix run git+https://codeberg.org/tmichnicki/lemonade-nix
+nix run git+https://github.com/michnicki/lemonade-nix
 ```
 
 ### Install into a profile
 
 ```bash
-nix profile install git+https://codeberg.org/tmichnicki/lemonade-nix
+nix profile install git+https://github.com/michnicki/lemonade-nix
 ```
 
 ### NixOS / home-manager
@@ -21,7 +21,7 @@ nix profile install git+https://codeberg.org/tmichnicki/lemonade-nix
 Add to your flake inputs:
 
 ```nix
-inputs.lemonade-nix.url = "git+https://codeberg.org/tmichnicki/lemonade-nix";
+inputs.lemonade-nix.url = "git+https://github.com/michnicki/lemonade-nix";
 ```
 
 Then add the package:
@@ -48,7 +48,7 @@ Includes Python 3 with `black`, `pylint`, and `requests`.
 
 ## Dependencies
 
-For FLM-based models, [fastflowlm-nix](https://codeberg.org/tmichnicki/fastflowlm-nix) must also be installed and available on `PATH`.
+For FLM-based models, [fastflowlm-nix](https://github.com/michnicki/fastflowlm-nix) must also be installed and available on `PATH`.
 
 ## Web UI
 
