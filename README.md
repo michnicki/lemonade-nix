@@ -1,71 +1,78 @@
 # lemonade-nix
 
-Nix flake for [Lemonade](https://github.com/lemonade-sdk/lemonade) — a local LLM server with GPU/NPU acceleration, an OpenAI-compatible API, and a built-in React web UI.
+Nix flake for [Lemonade](https://github.com/lemonade-sdk/lemonade), a local LLM server with GPU/NPU acceleration, an OpenAI-compatible API, and a bundled React web UI.
+
+## Package Summary
+
+| Field | Value |
+|---|---|
+| Upstream | [lemonade-sdk/lemonade](https://github.com/lemonade-sdk/lemonade) |
+| Packaged version | Lemonade **v10.6.0** |
+| Main programs | `lemonade`, `lemond` |
+| Supported systems | Linux and Darwin |
+| Flake outputs | `packages.${system}.default`, `devShells.${system}.default` |
+
+## Requirements
+
+- Nix with flakes enabled.
+- For FLM-based models, [fastflowlm-nix](https://github.com/michnicki/fastflowlm-nix) must also be installed and available on `PATH`.
 
 ## Usage
 
 ### Run without installing
 
 ```bash
-nix run git+https://github.com/michnicki/lemonade-nix
+nix run github:michnicki/lemonade-nix -- --help
+```
+
+### Build
+
+```bash
+nix build github:michnicki/lemonade-nix
 ```
 
 ### Install into a profile
 
 ```bash
-nix profile install git+https://github.com/michnicki/lemonade-nix
+nix profile install github:michnicki/lemonade-nix
 ```
 
-### NixOS / home-manager
+### Use in a NixOS or home-manager module
 
-Add to your flake inputs:
+After adding `inputs.lemonade-nix.url = "github:michnicki/lemonade-nix";` to your flake, add the package to your module:
 
 ```nix
-inputs.lemonade-nix.url = "git+https://github.com/michnicki/lemonade-nix";
+{ inputs, pkgs, ... }: {
+  environment.systemPackages = [
+    inputs.lemonade-nix.packages.${pkgs.system}.default
+  ];
+}
 ```
 
-Then add the package:
+For home-manager, add the same package to `home.packages`.
 
-```nix
-environment.systemPackages = [ inputs.lemonade-nix.packages.${system}.default ];
-```
+### Web UI
 
-### Development shell
+The package includes the Lemonade web app. Once `lemond` is running, open [http://localhost:13305](http://localhost:13305) to use the chat interface.
+
+## Development
+
+Enter the development shell to get Python 3 with `black`, `pylint`, and `requests`:
 
 ```bash
-nix develop
+nix develop github:michnicki/lemonade-nix
 ```
 
-Includes Python 3 with `black`, `pylint`, and `requests`.
+## Updating
 
-## Binaries
+Use the update helper from the repository root:
 
-| Binary | Description |
-|---|---|
-| `lemonade` | CLI for managing and interacting with the server |
-| `lemond` | Main server daemon (OpenAI-compatible API) |
-| `lemonade-server` | Legacy compatibility shim |
+```bash
+./scripts/update-lemonade.sh [--dry-run]
+```
 
-## Dependencies
-
-For FLM-based models, [fastflowlm-nix](https://github.com/michnicki/fastflowlm-nix) must also be installed and available on `PATH`.
-
-## Web UI
-
-The package includes the Lemonade web app. Once `lemond` is running, open [http://localhost:13305](http://localhost:13305) in your browser to access the chat interface.
-
-## What's New in v10.2.0
-
-*   **Embeddable Lemonade**: Portable binaries designed for bundling into other applications.
-*   **Expanded Model Support**: Support for **Qwen Image** models and improved integration for GGUF and RAI models.
-*   **`lemonade pull` Enhancements**: Smarter automatic detection of checkpoints, recipes, and labels.
-*   **OpenCode Integration**: New integration accessible via `lemonade launch opencode`.
-*   **Hardware Reporting**: Improved device type detection for `llamacpp` and `whispercpp` backends.
-
-## Version
-
-Currently packages Lemonade **v10.6.0**.
+The script fetches the latest upstream release, resolves the source and web-app hashes, verifies the build, updates the README version reference, and commits the bump. With `--dry-run`, it skips pushing.
 
 ## License
 
-Lemonade is licensed under the [Apache 2.0 License](https://github.com/lemonade-sdk/lemonade/blob/main/LICENSE).
+Lemonade is licensed under Apache 2.0. See the [upstream license](https://github.com/lemonade-sdk/lemonade/blob/main/LICENSE).
