@@ -11,13 +11,13 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
 
-        version = "10.6.0";
+        version = "10.7.0";
 
         lemonade-src = pkgs.fetchFromGitHub {
           owner = "lemonade-sdk";
           repo = "lemonade";
           rev = "v${version}";
-          hash = "sha256-VxYDmfcdi7YaELAC5Pp1dzr7uhtWHM2YUSCnnNO8aV8=";
+          hash = "sha256-fB4XKDoX3KLRT8rx6Y3OThhaUuO4ng6rm72OYTtRzjs=";
         };
 
         # cpp-httplib is not packaged in nixpkgs; pre-fetch for FetchContent.
@@ -70,7 +70,7 @@
           # real one from the error output, then replace it below.
           outputHashAlgo = "sha256";
           outputHashMode = "recursive";
-          outputHash = "sha256-mKp8qfJN4ZsBCOISUSjezsRK+mELeXXBg5EB+c7DpYY=";
+          outputHash = "sha256-Q2p5vGHikjxd2pCFW367ThOwzmIQck8oOzK4Ahs8jf4=";
 
           dontStrip = true;
           dontFixup = true;
@@ -95,6 +95,10 @@
             curl
             zstd
             openssl
+            # v10.7.0 added mbedTLS for download digest verification. Upstream
+            # prefers system mbedcrypto (via pkg-config) and only falls back to a
+            # network FetchContent git-clone otherwise, which the sandbox blocks.
+            mbedtls
           ] ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
             systemd
             libcap
