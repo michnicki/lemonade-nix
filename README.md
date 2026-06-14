@@ -73,6 +73,8 @@ Use the update helper from the repository root:
 
 The script fetches the latest upstream release, resolves the source and web-app hashes, verifies the build, updates the README version reference, and commits the bump. With `--dry-run`, it skips pushing.
 
+> **Note:** `scripts/` is git-ignored and not part of the repository, so a fresh clone won't include this helper. It's a local maintenance convenience — keep your own copy outside version control.
+
 ## License
 
 Lemonade is licensed under Apache 2.0. See the [upstream license](https://github.com/lemonade-sdk/lemonade/blob/main/LICENSE).
