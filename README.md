@@ -65,15 +65,14 @@ nix develop github:michnicki/lemonade-nix
 
 ## Updating
 
-Use the update helper from the repository root:
+To bump to a new upstream release:
 
-```bash
-./scripts/update-lemonade.sh [--dry-run]
-```
+1. Set `version` in `flake.nix` to the new tag (without the leading `v`).
+2. Refresh `lemonade-src.hash` — set it to a fake hash, run `nix build`, and copy the real hash from the error.
+3. Refresh the `lemonade-webapp` `outputHash` the same way.
+4. Run `nix build` to verify, then update the version reference above.
 
-The script fetches the latest upstream release, resolves the source and web-app hashes, verifies the build, updates the README version reference, and commits the bump. With `--dry-run`, it skips pushing.
-
-> **Note:** `scripts/` is git-ignored and not part of the repository, so a fresh clone won't include this helper. It's a local maintenance convenience — keep your own copy outside version control.
+A non-routine bump (renamed binary, a new bundled dependency pulled in via `FetchContent`, or a changed build layout) may also need edits to `buildInputs`, `postPatch`, or `installPhase`.
 
 ## License
 
