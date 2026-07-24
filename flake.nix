@@ -11,13 +11,13 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
 
-        version = "11.0.0";
+        version = "11.5.0";
 
         lemonade-src = pkgs.fetchFromGitHub {
           owner = "lemonade-sdk";
           repo = "lemonade";
           rev = "v${version}";
-          hash = "sha256-+8XPbD3faUlJKI2GLlXx1puJLrLXfaDBQzrVjfixOao=";
+          hash = "sha256-wpon0pOG+yHWm+Q8cLVh73G4n9O3llnoA6McZwK1gsg=";
         };
 
         # cpp-httplib is not packaged in nixpkgs; pre-fetch for FetchContent.
@@ -70,7 +70,7 @@
           # real one from the error output, then replace it below.
           outputHashAlgo = "sha256";
           outputHashMode = "recursive";
-          outputHash = "sha256-BShKCjPKynUmXN5dc+ehIrgy56CmBoSEarA7bdXzsZA=";
+          outputHash = "sha256-Y9rGdQTXtn7x0OjFvEg9v1Pive0v6XPZmBvyOjLkNIU=";
 
           dontStrip = true;
           dontFixup = true;
