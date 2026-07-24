@@ -108,7 +108,7 @@
           postPatch = ''
             # Make resource lookup work for FHS install layout:
             # binary at $prefix/bin/, resources at $prefix/share/lemonade-server/
-            sed -i 's|std::vector<std::string> install_prefixes = {|std::vector<std::string> install_prefixes = {\n        (exe_dir.parent_path() / "share" / "lemonade-server").string(),|' \
+            sed -i 's|std::vector<std::string> install_prefixes = platform()->get_install_prefixes();|std::vector<std::string> install_prefixes = platform()->get_install_prefixes();\n        install_prefixes.insert(install_prefixes.begin(), (exe_dir.parent_path() / "share" / "lemonade-server").string());|' \
               src/cpp/server/utils/path_utils.cpp
 
             # Pre-fetched libwebsockets source is read-only in the Nix store;
