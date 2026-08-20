@@ -11,13 +11,13 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
 
-        version = "11.6.0";
+        version = "11.7.0";
 
         lemonade-src = pkgs.fetchFromGitHub {
           owner = "lemonade-sdk";
           repo = "lemonade";
           rev = "v${version}";
-          hash = "sha256-dJTz2ZlJ+cdNI8Ppdga+Ghjli5p395pN/bzpjdXTJkI=";
+          hash = "sha256-7YpBGChrULI1iDvTGo9ij8bIUAYVOvBw88fGyG5AujI=";
         };
 
         # cpp-httplib is not packaged in nixpkgs; pre-fetch for FetchContent.
