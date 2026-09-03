@@ -7,7 +7,7 @@ Nix flake for [Lemonade](https://github.com/lemonade-sdk/lemonade), a local LLM 
 | Field | Value |
 |---|---|
 | Upstream | [lemonade-sdk/lemonade](https://github.com/lemonade-sdk/lemonade) |
-| Packaged version | Lemonade **v11.8.1** |
+| Packaged version | Lemonade **v11.9.0** |
 | Main programs | `lemonade`, `lemond` |
 | Supported systems | Linux and Darwin |
 | Flake outputs | `packages.${system}.default`, `devShells.${system}.default` |
