@@ -87,6 +87,9 @@
             cmake
             ninja
             pkg-config
+            # v2026.x computes its version at configure time by running
+            # tools/version.py (find_package(Python3 REQUIRED) in CMakeLists).
+            python3
           ];
 
           buildInputs = with pkgs; [
@@ -106,6 +109,12 @@
           ];
 
           postPatch = ''
+            # tools/version.py derives the version from git tags, which the
+            # source tarball lacks. Write upstream's release-override file so
+            # the build reports ${version} instead of a date-dependent
+            # development version like "2026.44.0~0.nogit".
+            echo "${version}" > .version
+
             # Make resource lookup work for FHS install layout:
             # binary at $prefix/bin/, resources at $prefix/share/lemonade-server/
             sed -i 's|std::vector<std::string> install_prefixes = platform()->get_install_prefixes();|std::vector<std::string> install_prefixes = platform()->get_install_prefixes();\n        install_prefixes.insert(install_prefixes.begin(), (exe_dir.parent_path() / "share" / "lemonade-server").string());|' \
